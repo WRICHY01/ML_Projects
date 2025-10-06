@@ -21,6 +21,7 @@ from cstmr_satisfaction_proj.pipelines.deployment_pipeline_wsl import deploy_mod
 
 script_path = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(script_path, "dataset", "olist_customers_dataset.csv")
+
 docker_settings = DockerSettings(required_integrations=[MLFLOW])
 
 # @step
