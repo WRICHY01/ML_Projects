@@ -1,0 +1,6 @@
+Your Coversation History.
+You: hello my name is Richard
+You: pls i need help with understanding what AI Engineering is all about and all the tools they need for start up, and also if it too late to state this career path around the age of 30, give me your objective opinion
+You: really you think so?
+You: okay thanks, whats my name again?
+End of Conversation

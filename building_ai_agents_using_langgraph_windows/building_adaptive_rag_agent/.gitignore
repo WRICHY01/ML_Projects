@@ -1,0 +1,5 @@
+.barg_venv/
+.env
+*.pyc
+**/__pycache__/
+tempCodeRunnerFile.py

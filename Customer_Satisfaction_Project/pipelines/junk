@@ -1,0 +1,115 @@
+zenml_client = Client()
+    model_deployer = zenml_client.active_stack.model_deployer
+    experiment_tracker = zenml_client.active_stack.experiment_tracker
+    # print(f"vars of experiment_tracker is: {vars(experiment_tracker)}")
+    print(f"dir of experiment_tracker is: {experiment_tracker.get_run_id.__dir__()}")
+    # experiment_tracker = get_step_context().stack.experiment_tracker
+    print(f"experiment_tracker : {vars(experiment_tracker)}")
+    # pipeline_name = get_step_context().pipeline.name
+    # print(f"pipeline_name: {pipeline_name}")
+    # print(f"get_step_context: {get_step_context().__dir__()}")
+    # print(f'varsssss: {vars(get_step_context())}')
+    run_name = get_step_context().pipeline_run.id
+    pipeline_name = get_step_context().pipeline.name
+    print(f"pipline_name: {pipeline_name}")
+    print(f"run_name: {run_name}")
+    # print(f"get_step_context contents are: {get_step_context()}")
+    # model_deployer: MLFlowModelDeploye/r = get_step_context().stack.model_deployer\
+    # print(f"model_deployer: {model_deployer.__dir__()}")
+
+    active_service = model_deployer.find_model_server(
+        pipeline_name=pipeline_name,
+        pipeline_step_name="deploy_model",
+        model_name="model",
+        running=False
+    )
+    # print(f"active service deets are: {active_service[0].uuid}")
+    # print(type(active_service[0].uuid))
+    print(f"The no of services found in deploy_model func is: {len(active_service)}")
+    print(active_service)
+    if active_service:
+        model_deployer.stop_model_server(active_service[0].uuid)
+        model_deployer.delete_model_server(active_service[0].uuid)
+        print('Successfully stopped and deleted the current running service, trying to  redeploy')
+    zenml_run_id_ = experiment_tracker.get_run_id(experiment_name="customer_satisfaction_deployment_experiment",
+    # "customer_satisfaction_model_deployment",
+                                                  run_name=run_name
+                                                 )
+    # print(f"mlflow_run_id: {experiment_tracker.get_run_id(experiment_name="hello",
+                            # run_name="there")}")
+    # mlflow_run_id = experiment_tracker.get_run_id(
+    #     experiment_name=pipeline_name,
+    #     run_name=run_name,
+    # )
+    mlflow_client = MlflowClient()
+    # print(f"mlflow_clientttt: {vars(mlflow_client._tracking_client)}")
+
+    experiment = mlflow_client.get_experiment_by_name("customer_satisfaction_deployment_experiment")
+    artifacts = mlflow_client.list_artifacts(run_id)
+    print(f"The artifacts for this experiment is/are: {[art.path for art in artifacts]}")
+
+    print("run_id is of type: ",type(run_id))
+    uuid_run_id = uuid.UUID(run_id)
+    print("run_id is now of type: ",type(uuid_run_id))
+    print(f"experiment_result came out: {vars(experiment)}")
+    # _run_id = zenml_run_id_
+    print(f"zenml_run_id_: {zenml_run_id_}")
+    print(f"zenml_run_id: {_run_id}")
+
+    print("eval_run_id is of type: ",type(eval_run_id))
+    eval_uuid_run_id = uuid.UUID(eval_run_id)
+    print("run_id is now of type: ",type(eval_uuid_run_id))
+    print(f"experiment_result came out: {vars(experiment)}")
+    # _run_id = zenml_run_id_
+    print(f"eval_zenml_run_id_: {zenml_run_id_}")
+    print(f"_eval_zenml_run_id: {_eval_run_id}")
+    active_run = mlflow.active_run()
+    print(active_run.__dir__())
+
+    # print(f"mlflow_client vars includes: {vars(mlflow_client.tracking_client())}")
+    # print(f"run_id: {active_run.info.run_id}")
+    # experiment_tracker.configure_mlflow()
+    # client = MlflowClient()
+
+    mlflow_deployment_config = MLFlowDeploymentConfig(
+        name="customer_satisfaction_model_deployment",
+        pipeline_name="continuous_deployment_pipeline",
+        pipeline_step_name="deploy_model",
+        model_uri=model_uri,
+        model_name=model_name,
+        workers=1,
+        mlserver=False,
+        blocking=True,
+        silent_daemon=False,
+        timeout=600
+    )
+
+    print(f"vars of mlflow_deployment_config: {vars(mlflow_deployment_config)}")
+    print(f"dir of mlflow_deployment_config: {mlflow_deployment_config.__dir__()}")
+    
+    print(f"model_deployer vars at almost the end of the func includes: {vars(model_deployer)}")
+
+    svcs = model_deployer.find_model_server()
+    for i, svc in enumerate(svcs):
+        print(svc)
+        print(svc.config)
+        print(f"{i}. {svc.config.name} has {svc.config.model_uri}")
+    service = model_deployer.deploy_model(
+        config=mlflow_deployment_config,
+        replace=True,
+        service_type=MLFlowDeploymentService.SERVICE_TYPE
+    )
+    # mlflow_deployer_finder = inspect.getsourcefile(service)
+    # if mlflow_deployer_finder:
+    #     print(f"\n\n The path for mlflow_deployer_finder is : {mlflow_deployer_finder}\n\n")
+    # else:
+    #     print("Couldnt find the file")
+
+    print(f"model_deployer vars at the end of the func includes: {vars(service)}")
+    # for param in service.__dir__():
+    # # if 'replace' in service.__dir__():
+    #     print(param)
+    # else:
+    #     print("absent")
+    # print(f"model_deployer dir at the end of the fun includes: {service.__dir__()}")
+

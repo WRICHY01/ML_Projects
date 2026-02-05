@@ -1,9 +1,11 @@
 import logging
+
 import pandas as pd
 from zenml import step
-from src.data_cleaning import DataPreprocessStrategy, DataSplitStrategy, DataCleaningStrategy
 from typing import Tuple
 from typing_extensions import Annotated
+
+from src.data_cleaning import DataPreprocessStrategy, DataSplitStrategy, DataCleaningStrategy
 
 @step
 def clean_df(df: pd.DataFrame) -> Tuple[
@@ -37,4 +39,3 @@ def clean_df(df: pd.DataFrame) -> Tuple[
     except Exception as e:
         logging.error(f"Error in cleaning data: {e}")
         raise e
-    
