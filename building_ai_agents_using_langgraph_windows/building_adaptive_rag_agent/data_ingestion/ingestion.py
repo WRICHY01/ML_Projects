@@ -3,16 +3,15 @@ import time
 import pickle
 from typing import List
 
-from dotenv import load_dotenv
-load_dotenv()
-
 from langchain_community.document_loaders import PyPDFLoader, WebBaseLoader
 from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-
+from dotenv import load_dotenv
 
 from ..llm import llm_model
 from ..main import script_dir_path
+
+load_dotenv()
 
 urls = [
     "https://lilianweng.github.io/posts/2023-06-23-agent/",
@@ -123,5 +122,19 @@ except Exception as e:
 
 retriever = vector_db.as_retriever(
     search_type="similarity",
-    search_kwargs={'k':1} #'k' is the amount of chunks to return: in this  case 5
+    search_kwargs={'k': 2} #'k' is the amount of chunks to return: in this  case 5
 )
+
+# retrieved_docs1 = []
+# retrieved_docs2 =  []
+# list_of_questions = ["what is adversarial attack", "what is prompt engineering"]
+# for n, question in enumerate(list_of_questions):
+#     print(f">>>>>>>>>>>>>>>{n}")
+#     retrieved_docs1.append(retriever.invoke(question)[0])
+#     retrieved_docs2.append(retriever.invoke(question))
+
+
+# print("retrieved_docs1 is thus: ",retrieved_docs1)
+# print("\nretrieved_docs2 is thus: ",retrieved_docs2)
+
+

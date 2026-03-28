@@ -17,6 +17,9 @@ class GeneratedAnswerGrader(BaseModel):
     binary_score: Literal["yes", "no"] = Field(
         description="'yes' if the answer addresses the question, 'no' if it does not."
     )
+    response: str = Field(
+        description="response"
+    )
     
 
 structured_gen_answer_grader = llm_model.chat_model.with_structured_output(GeneratedAnswerGrader)
@@ -42,10 +45,10 @@ system = """
          Provide your reasoning first to justify your decision,then provide the binary score.
          """
 
-generated_answer_template = ChatPromptTemplate(
+generated_answer_template = ChatPromptTemplate.from_messages(
     [
         ("system", system),
-        ("human", "User question\n{question}\n\nLLM Generation\n{generated_answer}")
+        ("human", "User question:\n{question}\n\nLLM Generation:\n{generated_answer}")
     ]
 )
 

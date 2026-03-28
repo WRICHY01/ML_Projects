@@ -6,7 +6,7 @@ from langchain_core.runnables import RunnableSequence
 
 from ...llm import llm_model
 
-print("Entering the hallucination source code")
+# print("Entering the hallucination source code")
 class GradeHallucinations(BaseModel):
     """
     Binary score for hallucination check on generated answers.
@@ -17,6 +17,9 @@ class GradeHallucinations(BaseModel):
     binary_score: Literal["yes", "no"] = Field(
         description="'yes' if the answer is grounded in the facts, 'no' if it is not."
         )
+    response: str = Field(
+        description="response"
+    )
     
 
 
@@ -51,6 +54,6 @@ hallucination_grader_prompt_template = ChatPromptTemplate.from_messages(
 
 hallucination_chain: RunnableSequence = hallucination_grader_prompt_template | structured_llm_hallucination_grader
 
-print("Done with processing hallucination source code")
+# print("Done with processing hallucination source code")
 
 # print(hallucination_grader)

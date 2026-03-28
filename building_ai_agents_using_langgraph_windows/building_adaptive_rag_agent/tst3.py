@@ -1,57 +1,147 @@
-from langchain_core.messages import HumanMessage, AIMessage
+from typing import Literal, Optional
+
+from pydantic import BaseModel, Field
+from langchain_core.documents import Document
+from graph.state import QueryRouter, SubQueryRouter, QueryContext
 
 
-a = HumanMessage(content="Hello, How are you?")
-b = AIMessage(content="Hi there!, I'm doing alright, you?")
-# d = HumanMessage(content="Okay, i want to know how an llm agent works")
-e = AIMessage(content="An llm agent works by transformer arch. where it has multiple attention heads...")
-# f = HumanMessage(content="Wow that's great tell me more, i'd like to build one someday")
-g = AIMessage(content="Okay, so initially when the input is passed in to the model,\
-it goes in through what is called positional encoding, this is done to maintain order at which the text came in as input...")
+# what is llm poisoning and an mcp server and how do they relate
 
-c = []
-c.append(a)
-c.append(b)
-# c.append(c)
-# c.append(d)
-c.append(e)
-# c.append(f)
-c.append(g)
+class SubQuery(BaseModel):
+    """
+    Represents a single atomic sub-question derived from the original user query.
+    """
+    reasoning: str = Field(
+        description="Explanation of how this question was processed"
+    )
+    rephrased_question: str
+    question_status: Literal["VALID", "AMBIGUOUS", "INVALID"]
+    # should_rewrite: bool
+    resolved_using_history: bool = Field(
+        description="Whether conversational history was used to resolve this question"
+    )
 
-print(c, len(c))
+class StructuredQuery(BaseModel):
+    """
+    Canonical structured representation of the original user query.
+    Includes decomposition, reformulation, and validation metadata.
+    """
+    sub_queries: list[SubQuery]
 
+class RetrievalEvaluation(SubQuery):
+    query_context: QueryContext
+    is_relavant: Literal["yes", "no"]
+    should_rewrite: bool
+    generated_answer: Optional[str]
+    hallucination_status: Optional[Literal["yes", "no"]]
+    generated_answer_grader_status: Optional[Literal["yes", "no"]]
 
-# print(hasattr(a, "content"))
-print(isinstance(c[-1], AIMessage))
-print(HumanMessage)
-
-print("is AIMessage in c: ", AIMessage in c)
-for n in range(len(c), 0, -1):
-#     print(type(messagetype))
-    print(n)
-
-
-for i in reversed(range(len(c))):
-    # print(i)
-    print("The output of the list when being iterated backwards is thus: ", c[i], "and it is in the", i, "position.")
-    # if isinstance(c[-(i + 1)], HumanMessage):
-    #     print("the value of i is", -i)
-    #     print(c[-(i + 1)].content)
-    #     break
-    if isinstance(c[i], HumanMessage):
-        print("the value of i is", i)
-        print(c[i].content)
-        break
-
-for i in range(len(c)):
-    print(i)
+# tst_obj = RetrievalEvaluation(
+#     reasoning="This is a test reasoning",
+#     extracted_questions="This is a test extracted question",
+#     # data_source="vector_store",
+#     retrieved_documents=[Document(page_content="this is a test document")],
+#     is_relavant="no",
+#     should_rewrite=False,
+# )
 
 
-question = [HumanMessage(content='what is th  recent advancemtn in artifucial intelligence?', additional_kwargs={}, response_metadata={}, id='8bc58868-3e82-4e9c-9fc7-f06dd643fe0d'), AIMessage(content='What is the recent advancement in artificial intelligence?', additional_kwargs={}, response_metadata={'prompt_feedback': {'block_reason': 0, 'safety_ratings': []}, 'finish_reason': 'STOP', 'model_name': 'gemini-2.5-flash', 'safety_ratings': [], 'model_provider': 'google_genai'}, id='lc_run--019becc6-5593-7e50-9566-c0a531cfb4b2-0', usage_metadata={'input_tokens': 519, 'output_tokens': 320, 'total_tokens': 839, 'input_token_details': {'cache_read': 0}, 'output_token_details': {'reasoning': 311}})]
-print(question[-1])
-print("last rephrased question is ", question[-1].content)
+# print("<<<<<<<<<Lets hope the tst obj works and to confirm it contains: ", tst_obj, ">>>>>>>>")
+
+structured_queries = StructuredQuery(sub_queries = [SubQuery(reasoning='Fixed capitalization.', rephrased_question='What is the current price of Bitcoin?', question_status='VALID', resolved_using_history=False),
+                                                    SubQuery(reasoning='Input is gibberish with no discernible meaning.', rephrased_question='lahooeljoiajposjaljoi', question_status='INVALID', resolved_using_history=False),
+                                                    SubQuery(reasoning='Input is gibberish with no discernible meaning.', rephrased_question='apojapojeklnsjufhljaohf', question_status='INVALID', resolved_using_history=False),
+                                                    SubQuery(reasoning='Input is gibberish with no discernible meaning.', rephrased_question='oiueulkjljwoiuowj;laohoifjpsjoif', question_status='INVALID', resolved_using_history=False)]
+)
+valid_questions = [sq for sq in structured_queries.sub_queries if sq.question_status.lower() == "valid"]
+invalid_questions = [sq for sq in structured_queries.sub_queries if sq.question_status.lower() == "invalid"]
+print(structured_queries.sub_queries)
+
+# for structured_query in structured_queries.sub_queries:
+#     print("structured_queries looks thus: ", structured_queries.sub_queries, "structured_query in the for loop looks thus: ", structured_query)
+#     print(f"is the structured_query.question_status which is {structured_query.question_status} -> {structured_query.question_status.lower()} equal to 'invalid' {structured_query.question_status.lower() == "invalid"}")
+#     # if structured_query.question_status.lower() in ["invalid","[invalid]"]:
+#     if structured_query.question_status.lower() == "invalid" or structured_query.question_status.lower() == "[invalid]":
+#         print("\n\n>>>>>>>>deciding if its in the valid or invalid category<<<<<<<<<<<<<<<<\n\n")
+#         invalid_questions.append(structured_query)
+#         print(structured_queries.sub_queries)
+#         structured_queries.sub_queries.remove(structured_query)
+
+        # print("\n\nThis is the outcome of how the structured query looks like: ", structured_queries.sub_queries, " and how the invalid questions looks like: ", invalid_questions, "\n\n")
+
+print(valid_questions)
+structured_queries.sub_queries = valid_questions
+print("\n\n", structured_queries.sub_queries)
+
+class SubQueryRouter(BaseModel):
+    id: int 
+    extracted_question: str
+    data_source: str
 
 
-# print("is the content of the last question in ['what', 'recent']", question[-1].content in ["what", "recent"])
-for i in ["Hello", "hell", "helen", "hella", "hello"]:
-    print(i)
+a = [SubQueryRouter(id=13, extracted_question='What is LLM poisoning?', data_source='vector_store'), 
+    SubQueryRouter(id=2, extracted_question='What is an MCP server?', data_source='llm_knowledge'), 
+    SubQueryRouter(id=3, extracted_question='How do LLM poisoning and an MCP server relate?', data_source='vector_store')]
+# b = [SubQueryRouter(extracted_question='What is an AI agent?', data_source='llm_knowledge'), 
+#      SubQueryRouter(extracted_question='What is LLM poisoning?', data_source='vector_store'), 
+#      SubQueryRouter(extracted_question='How are AI agents and LLM poisoning related to adversarial attacks?', data_source='vector_store')]
+
+
+ai = []
+
+
+# # if not ai:
+# if False:
+#     print("ai content is not empty!")
+
+# else:
+#     print("ai content is empty!")
+
+print("ai content is not empty!" if not ai else "ai content is empty!")
+
+class TestSubQuery(BaseModel):
+    reasoning: Optional[str] = None
+    rephrased_question: Optional[str] = None
+    question_status: Optional[Literal["VALID", "INVALID", "AMBIGUOUS"]] = None
+    resolved_using_history: Optional[bool] = None
+demo = SubQuery(
+    reasoning="This is a demo reasoning field",
+    rephrased_question="This is a demo rephrased_question field",
+    question_status="AMBIGUOUS",
+    resolved_using_history=False
+)
+
+print(f"demo object looks thus {demo} before altering.")
+demo.resolved_using_history = True
+print(f"demo object now looks thus {demo} after altering.")
+
+demo2 = TestSubQuery(
+    reasoning="hmmm..."
+)
+
+print(f"demo2 object looks thus {demo2} currently")
+demo2.resolved_using_history = False
+print(demo2)
+demo2.resolved_using_history = None
+print([demo2])
+
+class Amalgam(BaseModel):
+    testquerycontext: Optional[TestSubQuery]
+    vs_attempt_count: int = 0
+    llm_kb_attempt_count: int = 0
+    ws_attempt_count: int = 0
+
+
+
+tst_amalgam = Amalgam(
+    testquerycontext=demo2
+)
+
+print(f"The content of tst_amalgam is thus: {tst_amalgam.testquerycontext}")
+
+import uuid
+
+print("The contents of a is thus", a)
+new_a = sorted(a, key=lambda x: x.id)
+print("The content of a after being sorted", new_a)
+
